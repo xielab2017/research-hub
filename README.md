@@ -1,149 +1,239 @@
-# ResearchHub
+# 🧬 ResearchHub v3.0
 
-> 学术文献研究与播客生成技能
+> 学术文献研究与AI蛋白/肽设计平台
 
-## 功能特性
-
-- 🔍 **文献搜索** - 从 arXiv、OpenAlex 搜索学术论文
-- 📝 **智能摘要** - 使用 LLM 生成论文摘要
-- 🎙️ **音频播客** - 将摘要转为语音播客
-- 📓 **Notebook 管理** - 创建和组织研究笔记
-- 🔎 **全文搜索** - 跨笔记本搜索论文
+[![GitHub Stars](https://img.shields.io/github/stars/xielab2017/research-hub?style=social)](https://github.com/xielab2017/research-hub)
+[![Python Version](https://img.shields.io/badge/python-3.8+-blue)](https://www.python.org/)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 ---
 
-## 在 OpenClaw 中使用
+## 🎯 简介
 
-### 方式一：直接调用 Agent 模块
+ResearchHub 是一个 **一站式学术研究AI平台**，提供两种使用方式：
 
-在 OpenClaw 会话中可以这样使用：
+| 模式 | 特点 | 适合 |
+|------|------|------|
+| 🌐 网页版 | 无需安装，浏览器直接用 | 快速体验、日常使用 |
+| ⌨️ 命令行版 | 功能完整，可定制 | 开发者、高级用户 |
 
-```python
-# 导入模块
-import sys
-sys.path.insert(0, '/Users/liweixie/.openclaw/skills/research-hub')
+---
 
-from agents.search_agent import SearchAgent
-from agents.summary_agent import SummaryAgent
-from core.orchestrator import Orchestrator
+## ✨ 功能特性
 
-# 1. 搜索论文
-search_agent = SearchAgent()
-papers = search_agent.search_arxiv("machine learning", max_results=5)
+| 功能 | 说明 |
+|------|------|
+| 🔍 论文搜索 | arXiv、OpenAlex 学术论文 |
+| 📝 智能摘要 | AI 生成论文摘要 |
+| 🎙️ 语音播客 | 文本转语音 |
+| 📓 文献管理 | 笔记本 + 全文搜索 |
+| 🧪 AI 蛋白设计 | 抗菌肽 + 序列评估 |
+| 🔬 数据库对接 | UniProt、PDB、AlphaFold |
 
-# 2. 生成摘要
-summary_agent = SummaryAgent()
-for paper in papers:
-    summary = summary_agent.summarize(paper)
-    print(f"{paper['title']}: {summary[:100]}...")
+---
+
+## 🚀 快速开始
+
+### 方式一：网页版（推荐）
+
+```bash
+# 1. 安装依赖
+pip install flask requests beautifulsoup4 openpyxl
+
+# 2. 克隆项目
+git clone https://github.com/xielab2017/research-hub.git
+cd research-hub
+
+# 3. 启动服务
+python web/app.py
+
+# 4. 打开浏览器
+# 本地访问: http://localhost:5000
+# 局域网访问: http://你的IP:5000
 ```
 
-### 方式二：使用 Workflow
+### 方式二：命令行版
 
-```python
-# 完整研究流程
-orchestrator = Orchestrator()
+```bash
+# 1. 安装依赖
+pip install requests beautifulsoup4 openpyxl
 
-result = orchestrator.run(
-    query="transformer attention",  # 搜索关键词
-    max_results=5,                 # 返回数量
-    generate_audio=True,           # 是否生成音频
-    classify_method="tfidf"        # 分类方法
-)
+# 2. 克隆项目
+git clone https://github.com/xielab2017/research-hub.git
+cd research-hub
 
-# 查看结果
-print(f"找到 {result['stats']['total_papers']} 篇论文")
-print(f"主题分类: {result['stats']['topics']}")
-
-# 获取摘要
-for topic, synthesis in result['synthesis'].items():
-    print(f"\n=== {topic} ===")
-    print(synthesis['synthesis'][:500])
+# 3. 使用命令
+python -m research_hub --help
 ```
 
-### 方式三：Notebook 管理
+---
 
-```python
-from storage.database import Database
+## 📖 详细使用
 
-db = Database()
+### 网页版功能
+
+打开 http://localhost:5000 即可看到：
+
+```
+┌─────────────────────────────────────────┐
+│           🧬 ResearchHub               │
+├─────────────────────────────────────────┤
+│  [🧪 蛋白设计] [🔍 论文搜索] [📓 笔记本] │
+└─────────────────────────────────────────┘
+
+🧪 蛋白设计
+├── 抗菌肽设计 → 输入长度、数量 → 生成
+├── 序列评估 → 稳定性、溶解度预测
+└── 结果导出 → JSON/CSV/FASTA
+
+🔍 论文搜索
+├── arXiv 搜索 → 输入关键词
+├── OpenAlex 搜索 → 多学科
+└── 结果展示 → 标题、作者、摘要
+
+📓 笔记本
+├── 创建笔记本
+├── 添加论文
+└── 全文搜索
+```
+
+### 命令行版使用
+
+```bash
+# 搜索论文
+python -m research_hub search "machine learning" --source arxiv --num 5
+
+# 生成抗菌肽
+python -m research_hub generate --type amp --length 15-25 --num 10
 
 # 创建笔记本
-nb_id = db.create_notebook("我的Transformer研究", "关于Transformer架构的论文收集")
+python -m research_hub notebook create "我的研究"
 
-# 添加论文
-paper = {
-    "title": "Attention Is All You Need",
-    "authors": ["Vaswani et al."],
-    "published": "2017",
-    "summary": "We propose the Transformer model...",
-    "link": "https://arxiv.org/abs/1706.03762"
-}
-db.add_paper(nb_id, paper)
+# 评估序列
+python -m research_hub evaluate "KALKKKLLKALKKK"
+```
 
-# 全文搜索
-results = db.search("transformer attention")
-for p in results:
-    print(f"- {p['title']}")
+### Python API
+
+```python
+import sys
+sys.path.insert(0, 'research-hub')
+
+# 1. 搜索论文
+from agents.search_agent import SearchAgent
+search = SearchAgent()
+papers = search.search_arxiv("protein design", max_results=5)
+
+# 2. 设计抗菌肽
+from design.generator import ProteinGenerator
+from design.evaluator import SequenceEvaluator
+
+gen = ProteinGenerator()
+amps = gen.generate_antimicrobial_peptide(length_range=(15, 25), num_sequences=10)
+
+eval = SequenceEvaluator()
+for amp in amps:
+    result = eval.evaluate_antimicrobial_potential(amp['sequence'])
+    print(f"{amp['sequence']}: 评分={result['amp_score']:.2f}")
+
+# 3. 数据库查询
+from databases.protein_db import UniProtClient
+uniprot = UniProtClient()
+proteins = uniprot.search("kinase", size=5)
 ```
 
 ---
 
-## 命令行使用
+## 📦 安装
 
-## 项目结构
+### 基础依赖
+
+```bash
+pip install -r requirements.txt
+```
+
+### 可选依赖
+
+```bash
+# AI 模型（高级功能）
+pip install fair-esm transformers torch
+
+# 网页界面
+pip install flask
+```
+
+---
+
+## 🏗️ 项目结构
 
 ```
 research-hub/
-├── agents/           # 智能代理
+├── agents/              # 论文搜索代理
 │   ├── search_agent.py
-│   ├── processing_agent.py
-│   ├── classification_agent.py
 │   ├── summary_agent.py
-│   ├── synthesis_agent.py
-│   └── audio_agent.py
-├── core/             # 核心模块
-│   └── orchestrator.py
-├── storage/          # 存储模块
+│   └── ...
+├── design/              # 蛋白设计模块
+│   ├── generator.py     # 序列生成
+│   ├── evaluator.py     # 序列评估
+│   └── exporter.py      # 结果导出
+├── databases/           # 数据库API
+│   └── protein_db.py   # UniProt/PDB
+├── models/              # AI模型
+│   └── protein_lm.py   # ESM-2/ProtGPT2
+├── web/                 # 网页界面
+│   └── app.py
+├── storage/             # 本地存储
 │   └── database.py
-├── prompts/          # 提示词模板
-└── research_hub.py   # 主入口
+└── research_hub.py      # 命令行入口
 ```
 
-## 配置
+---
 
-### LLM 客户端
+## 💡 创新亮点
 
-```python
-from research_hub import Orchestrator
+1. **双模式** - 网页/命令行，满足不同场景
+2. **AI 蛋白设计** - 智能生成 + 评估筛选
+3. **一站式研究** - 搜论文→读摘要→做笔记
+4. **零门槛** - 不需要生物信息学背景
+5. **开源免费** - 社区共建
 
-# 使用 OpenAI
-llm_client = OpenAIClient(api_key="sk-...")
+---
 
-# 使用 Anthropic
-llm_client = AnthropicClient(api_key="sk-...")
+## 🤝 贡献
 
-orchestrator = Orchestrator(llm_client=llm_client)
+欢迎提交 Issue 和 Pull Request！
+
+```bash
+# 1. Fork 项目
+# 2. 创建分支
+git checkout -b feature/your-feature
+# 3. 提交
+git commit -m "Add your feature"
+# 4. 推送
+git push origin feature/your-feature
 ```
 
-### 音频引擎
+---
 
-```python
-# 使用 gTTS (免费)
-orchestrator = Orchestrator(audio_engine="gtts")
+## 📄 License
 
-# 使用 ElevenLabs (高质量)
-orchestrator = Orchestrator(
-    audio_engine="elevenlabs",
-    elevenlabs_api_key="your-api-key"
-)
-```
+MIT License - 自由使用、修改和分发
 
-## 数据存储
+---
 
-- 数据库: `~/.openclaw/data/research-hub/research_hub.db`
-- 音频: `~/.openclaw/data/research-hub/audio/`
+## 🙏 致谢
 
-## License
+- 基于 [Roshk01/Research_summary_AI](https://github.com/Roshk01/Research_summary_AI)
+- 基于 [sivasaikakarla/Research-Paper-Summarization](https://github.com/sivasaikakarla/Research-Paper-Summarization)
+- ESM-2: [facebookresearch/esm](https://github.com/facebookresearch/esm)
 
-MIT
+---
+
+## 📮 联系我
+
+- GitHub: https://github.com/xielab2017/research-hub
+- 邮箱: xielw@gdim.cn
+
+---
+
+*让科研更简单* 🧬
